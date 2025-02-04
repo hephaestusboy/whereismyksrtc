@@ -1,16 +1,15 @@
 const express = require("express");
-const cors = require("cors");
-
 const app = express();
+const pool = require("./dbConfig"); // Import the database connection
+
+app.get("/test-db", async (req, res) => {
+    try {
+        const result = await pool.query("SELECT NOW()");
+        res.json({ message: "Database connected!", time: result.rows[0].now });
+    } catch (err) {
+        res.status(500).json({ error: "Database connection failed", details: err.message });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
-
-app.use(cors());
-app.use(express.json());
-
-app.get("/", (req, res) => {
-    res.send("Bus Tracking Server is running!");
-});
-
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
