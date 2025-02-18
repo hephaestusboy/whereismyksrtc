@@ -1,15 +1,17 @@
-const express = require("express");
-const app = express();
-const pool = require("./dbConfig"); // Import the database connection
+require("dotenv").config();
 
-app.get("/test-db", async (req, res) => {
-    try {
-        const result = await pool.query("SELECT NOW()");
-        res.json({ message: "Database connected!", time: result.rows[0].now });
-    } catch (err) {
-        res.status(500).json({ error: "Database connection failed", details: err.message });
-    }
+const http = require("http");
+const { neon } = require("@neondatabase/serverless");
+
+const sql = neon(process.env.DATABASE_URL);
+
+const requestHandler = async (req, res) => {
+  const result = await sql`SELECT version()`;
+  const { version } = result[0];
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end(version);
+};
+
+http.createServer(requestHandler).listen(3000, () => {
+  console.log("Server running at http://localhost:3000");
 });
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
