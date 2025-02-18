@@ -1,15 +1,28 @@
-const express = require("express");
-const app = express();
-const pool = require("./dbConfig"); // Import the database connection
+require('dotenv').config();
+const { Pool } = require('pg');
 
-app.get("/neondb", async (req, res) => {
-    try {
-        const result = await pool.query("SELECT NOW()");
-        res.json({ message: "Database connected!", time: result.rows[0].now });
-    } catch (err) {
-        res.status(500).json({ error: "Database connection failed", details: err.message });
-    }
+// Connect to NeonDB using the connection string from .env
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }, // Required for NeonDB
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Test the connection
+pool.connect()
+  .then(() => console.log('Connected to NeonDB! 🚀'))
+  .catch(err => console.error('Database connection error:', err));
+
+// Example query function
+async function getBuses() {
+  try {
+    const result = await pool.query('SELECT * FROM buses'); // Query the buses table
+    console.log(result.rows);
+  } catch (err) {
+    console.error('Error fetching buses:', err);
+  }
+}
+
+// Call function to test database query
+getBuses();
+
+module.exports = pool;
